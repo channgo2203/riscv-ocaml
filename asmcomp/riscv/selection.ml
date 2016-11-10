@@ -36,11 +36,6 @@ method! select_operation op args =
   match (op, args) with
   (* RISC-V does not support immediate operands for multiply high *)
   | (Cmulhi, _) -> (Iintop Imulh, args)
-  (* The and, or and xor instructions have a different range of immediate
-     operands than the other instructions *)
-  | (Cand, _) -> self#select_logical Iand args
-  | (Cor, _) -> self#select_logical Ior args
-  | (Cxor, _) -> self#select_logical Ixor args
   (* Recognize (neg-)mult-add and (neg-)mult-sub instructions *)
   | (Caddf, [Cop(Cmulf, [arg1; arg2]); arg3])
   | (Caddf, [arg3; Cop(Cmulf, [arg1; arg2])]) ->
@@ -57,14 +52,6 @@ method! select_operation op args =
   | (Cmuli, _) -> (Iintop Imul, args)
   | _ ->
       super#select_operation op args
-
-method select_logical op = function
-  | [arg; Cconst_int n] when n >= 0 && n <= 0xFFF ->
-      (Iintop_imm(op, n), [arg])
-  | [Cconst_int n; arg] when n >= 0 && n <= 0xFFF ->
-      (Iintop_imm(op, n), [arg])
-  | args ->
-      (Iintop op, args)
 
 (* Instruction selection for conditionals *)
 
