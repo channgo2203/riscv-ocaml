@@ -31,6 +31,12 @@
 #define WSZ 4
 #endif
 
+#define FUNCTION(name) \
+	.globl name; \
+	.type name, @function; \
+	.align 2; \
+name:
+
 #if defined(__PIC__)
         .option pic
 #else
@@ -43,10 +49,7 @@
 	.globl	caml_system__code_begin
 caml_system__code_begin:
 
-        .align	2
-        .globl	caml_call_gc
-        .type	caml_call_gc, @function
-caml_call_gc:
+FUNCTION(caml_call_gc)
         /* Record return address */
         store	ra, caml_last_return_address, TMP0
         /* Record lowest stack address */
@@ -171,10 +174,7 @@ caml_call_gc:
 /* Call a C function from OCaml */
 /* Function to call is in ARG */
 
-        .align	2
-	.globl	caml_c_call
-	.type	caml_c_call, @function
-caml_c_call:
+FUNCTION(caml_c_call)
         /* Preserve return address in callee-save register s2 */
         mv	s2, ra
         /* Record lowest stack address and return address */
@@ -193,10 +193,7 @@ caml_c_call:
         .size	caml_c_call, .-caml_c_call
 
 /* Raise an exception from OCaml */
-        .align	2
-	.globl	caml_raise_exn
-	.type	caml_raise_exn, @function
-caml_raise_exn:
+FUNCTION(caml_raise_exn)
         /* Test if backtrace is active */
         load	TMP1, caml_backtrace_active
         bnez	TMP1, 2f
@@ -219,15 +216,9 @@ caml_raise_exn:
         j	1b
         .size	caml_raise_exn, .-caml_raise_exn
 
-	.globl	caml_reraise_exn
-	.type	caml_reraise_exn, @function
-
 /* Raise an exception from C */
 
-        .align	2
-	.globl	caml_raise_exception
-	.type	caml_raise_exception, @function
-caml_raise_exception:
+FUNCTION(caml_raise_exception)
 	load	TRAP_PTR, caml_exception_pointer
         load	ALLOC_PTR, caml_young_ptr
         load	ALLOC_LIMIT, caml_young_limit
@@ -251,11 +242,7 @@ caml_raise_exception:
 
 /* Start the OCaml program */
 
-        .align	2
-	.globl	caml_start_program
-	.type	caml_start_program, @function
-caml_start_program:
-
+FUNCTION(caml_start_program)
         la	ARG, caml_program
         /* Code shared with caml_callback* */
         /* Address of OCaml code to call is in ARG */
@@ -357,10 +344,7 @@ caml_start_program:
 
 /* Callback from C to OCaml */
 
-        .align	2
-	.globl	caml_callback_exn
-	.type	caml_callback_exn, @function
-caml_callback_exn:
+FUNCTION(caml_callback_exn)
         /* Initial shuffling of arguments (a0 = closure, a1 = first arg) */
         mv	TMP1, a0
         mv	a0, a1		/* a0 = first arg */
@@ -369,10 +353,7 @@ caml_callback_exn:
         j	.Ljump_to_caml
         .size	caml_callback_exn, .-caml_callback_exn
 
-        .align	2
-	.globl	caml_callback2_exn
-	.type	caml_callback2_exn, @function
-caml_callback2_exn:
+FUNCTION(caml_callback2_exn)
         /* Initial shuffling of arguments (a0 = closure, a1 = arg1, a2 = arg2) */
         mv	TMP1, a0
         mv	a0, a1
@@ -382,10 +363,7 @@ caml_callback2_exn:
         j	.Ljump_to_caml
         .size	caml_callback2_exn, .-caml_callback2_exn
 
-        .align	2
-	.globl	caml_callback3_exn
-	.type	caml_callback3_exn, @function
-caml_callback3_exn:
+FUNCTION(caml_callback3_exn)
         /* Initial shuffling of argumnets */
         /* (a0 = closure, a1 = arg1, a2 = arg2, a3 = arg3) */
         mv	TMP1, a0
@@ -397,14 +375,12 @@ caml_callback3_exn:
         j	.Ljump_to_caml
         .size	caml_callback3_exn, .-caml_callback3_exn
 
-        .align	2
-	.globl	caml_ml_array_bound_error
-	.type	caml_ml_array_bound_error, @function
-caml_ml_array_bound_error:
+FUNCTION(caml_ml_array_bound_error)
         /* Load address of [caml_array_bound_error] in ARG */
         la	ARG, caml_array_bound_error
         /* Call that function */
         j	caml_c_call
+        .size	caml_ml_array_bound_error, .-caml_ml_array_bound_error
 
 	.globl	caml_system__code_end
 caml_system__code_end:
