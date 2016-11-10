@@ -55,7 +55,7 @@ FUNCTION(caml_call_gc)
         /* Record lowest stack address */
         mv	TMP1, sp
         store	sp, caml_bottom_of_stack, TMP0
-.Lcaml_call_gc:
+Lcaml_call_gc:
 	/* Set up stack space, saving return address */
         /* (1 reg for RA, 1 reg for FP, 21 allocatable int regs, 20 caller-save float regs) * 8 */
         /* + 1 for alignment */
@@ -247,7 +247,7 @@ FUNCTION(caml_start_program)
         /* Code shared with caml_callback* */
         /* Address of OCaml code to call is in ARG */
         /* Arguments to the OCaml code are in a0 ... a7 */
-.Ljump_to_caml:
+Ljump_to_caml:
 	/* Set up stack frame and save callee-save registers */
 	addi	sp, sp, -0xd0
 	store	ra, 0xc0(sp)
@@ -287,18 +287,18 @@ FUNCTION(caml_start_program)
 	addi	sp, sp, -16
 	load	TMP1, caml_exception_pointer
 	store	TMP1, 0(sp)
-	lla	TMP0, .Ltrap_handler
+	lla	TMP0, Ltrap_handler
 	store	TMP0, 8(sp)
 	mv	TRAP_PTR, sp
 	load	ALLOC_PTR, caml_young_ptr
 	load	ALLOC_LIMIT, caml_young_limit
 	store	x0, caml_last_return_address, TMP0
 	jalr	ARG
-.Lcaml_retaddr:	/* pop trap frame, restoring caml_exception_pointer */
+Lcaml_retaddr:	/* pop trap frame, restoring caml_exception_pointer */
 	load	TMP1, 0(sp)
 	store	TMP1, caml_exception_pointer, TMP0
 	addi	sp, sp, 16
-.Lreturn_result:	/* pop callback link, restoring global variables */
+Lreturn_result:	/* pop callback link, restoring global variables */
 	load	TMP1, 0(sp)
 	store	TMP1, caml_bottom_of_stack, TMP0
 	load	TMP1, 8(sp)
@@ -336,10 +336,10 @@ FUNCTION(caml_start_program)
 	fld	fs11, 0xb8(sp)
 	addi	sp, sp, 0xd0
 	ret
-.Ltrap_handler:
+Ltrap_handler:
 	store	TRAP_PTR, caml_exception_pointer, TMP0
 	ori	a0, a0, 2
-	j	.Lreturn_result
+	j	Lreturn_result
 	.size	caml_start_program, .-caml_start_program
 
 /* Callback from C to OCaml */
@@ -350,7 +350,7 @@ FUNCTION(caml_callback_exn)
         mv	a0, a1		/* a0 = first arg */
         mv	a1, TMP1	/* a1 = closure environment */
         load	ARG, 0(TMP1)	/* code pointer */
-        j	.Ljump_to_caml
+        j	Ljump_to_caml
         .size	caml_callback_exn, .-caml_callback_exn
 
 FUNCTION(caml_callback2_exn)
@@ -360,7 +360,7 @@ FUNCTION(caml_callback2_exn)
         mv	a1, a2
         mv	a2, TMP1
         la	ARG, caml_apply2
-        j	.Ljump_to_caml
+        j	Ljump_to_caml
         .size	caml_callback2_exn, .-caml_callback2_exn
 
 FUNCTION(caml_callback3_exn)
@@ -372,7 +372,7 @@ FUNCTION(caml_callback3_exn)
         mv	a2, a3
         mv	a3, TMP1
         la	ARG, caml_apply3
-        j	.Ljump_to_caml
+        j	Ljump_to_caml
         .size	caml_callback3_exn, .-caml_callback3_exn
 
 FUNCTION(caml_ml_array_bound_error)
@@ -393,7 +393,7 @@ caml_system__code_end:
 	.type	caml_system__frametable, @object
 caml_system__frametable:
 	.quad	1		/* one descriptor */
-	.quad	.Lcaml_retaddr  /* return address into callback */
+	.quad	Lcaml_retaddr  /* return address into callback */
 	.short	-1		/* negative frame size => use callback link */
 	.short	0		/* no roots */
 	.align	3
